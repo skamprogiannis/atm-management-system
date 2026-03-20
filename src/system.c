@@ -123,11 +123,22 @@ void createNewAcc(struct User u)
         system("clear");
         printf("\t\t\t===== New record =====\n");
 
-        printf("\nEnter today's date(mm/dd/yyyy):");
-        scanf("%d/%d/%d", &r.deposit.month, &r.deposit.day, &r.deposit.year);
-
+        int validDate = 0;
+        while (!validDate) {
+            printf("\nEnter today's date(mm/dd/yyyy): ");
+            if (scanf("%d/%d/%d", &r.deposit.month, &r.deposit.day, &r.deposit.year) == 3) {
+                if (r.deposit.month >= 1 && r.deposit.month <= 12 && r.deposit.day >= 1 && r.deposit.day <= 31) {
+            validDate = 1;
+        } else {
+            printf("Invalid date values! Please try again.\n");
+        }
+    } else {
+        printf("Invalid format! Use mm/dd/yyyy.\n");
+        while (getchar() != '\n'); // Clear the "trash" (like letters or dashes)
+    }
+}
         printf("\nEnter the account number:");
-        scanf("%d", &r.accountNbr);
+        r.accountNbr = getIntInput();
 
         // Check for duplicates
         rewind(pf);
