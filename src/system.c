@@ -99,29 +99,46 @@ invalid:
 void createNewAcc(struct User u)
 {
     struct Record r;
-    struct Record cr;
+    struct Record cr;    
     char userName[50];
-    FILE *pf = fopen(RECORDS, "a+");
+    int accountExists;
 
-noAccount:
-    system("clear");
-    printf("\t\t\t===== New record =====\n");
-
-    printf("\nEnter today's date(mm/dd/yyyy):");
-    scanf("%d/%d/%d", &r.deposit.month, &r.deposit.day, &r.deposit.year);
-    printf("\nEnter the account number:");
-    scanf("%d", &r.accountNbr);
-
-    while (getAccountFromFile(pf, userName, &cr))
-    {
-        if (strcmp(userName, u.name) == 0 && cr.accountNbr == r.accountNbr)
-        {
-            printf("✖ This Account already exists for this user\n\n");
-            goto noAccount;
+    do {
+        accountExists = 0;
+        FILE *pf = fopen(RECORDS, "a+");
+        if (pf == NULL) {
+            printf("Error: Could not open database.\n");
+            return;
         }
-    }
+
+        system("clear");
+        printf("\t\t\t===== New record =====\n");
+
+        printf("\nEnter today's date(mm/dd/yyyy):");
+        scanf("%d/%d/%d", &r.deposit.month, &r.deposit.day, &r.deposit.year);
+
+        printf("\nEnter the account number:");
+        scanf("%d", &r.accountNbr);
+
+        // Check for duplicates
+        rewind(pf);
+        while (getAccountFromFile(pf, userName, &cr))
+        {
+            if (strcmp(userName, u.name) == 0 && cr.accountNbr == r.accountNbr)
+            {
+                printf("✖ This Account already exists for this user\n\n");
+                scanf(" %c", &myChar); // Stop so the user sees the message
+                accountExists = 1;
+                break;
+            }
+        }
+
+        fclose(pf);
+
+    } while (accountExists); // if accountExists == 1, restart the loop
+
     printf("\nEnter the country:");
-    scanf("%s", r.country);
+    scanf("%49s", r.country); // %49s to prevent buffer overflows
     printf("\nEnter the phone number:");
     scanf("%d", &r.phone);
     printf("\nEnter amount to deposit: $");
@@ -129,11 +146,11 @@ noAccount:
     printf("\nChoose the type of account:\n\t-> saving\n\t-> current\n\t-> fixed01(for 1 year)\n\t-> fixed02(for 2 years)\n\t-> fixed03(for 3 years)\n\n\tEnter your choice:");
     scanf("%s", r.accountType);
 
-    saveAccountToFile(pf, u, r);
-
-    fclose(pf);
+    FILE *pf_final = fopen(RECORDS, "a+");
+    saveAccountToFile(pf_final, u, r);
+    fclose(pf_final);
     success(u);
-}
+    }
 
 void checkAllAccounts(struct User u)
 {
