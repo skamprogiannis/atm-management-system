@@ -96,6 +96,15 @@ invalid:
     }
 }
 
+int getIntInput() {
+    int value;
+    while (scanf("%d", &value) != 1) {
+        while (getchar() != '\n'); // Clear buffer
+        printf("Invalid input. Try again: ");
+    }
+    return value;
+}
+
 void createNewAcc(struct User u)
 {
     struct Record r;
@@ -150,7 +159,7 @@ void createNewAcc(struct User u)
     saveAccountToFile(pf_final, u, r);
     fclose(pf_final);
     success(u);
-    }
+}
 
 void checkAllAccounts(struct User u)
 {
