@@ -30,9 +30,9 @@ void loginMenu(char a[50], char pass[50]) {
     perror("tcsetattr");
     return exit(1);
   }
-};
+}
 
-const char *getPassword(struct User u) {
+int checkPassword(struct User u) {
   FILE *fp;
   struct User userChecker;
 
@@ -41,15 +41,15 @@ const char *getPassword(struct User u) {
     exit(1);
   }
 
-  while (fscanf(fp, "%49s %49s", userChecker.name, userChecker.password) !=
-         EOF) {
+  while (fscanf(fp, "%d %49s %49s", &userChecker.id, userChecker.name,
+                userChecker.password) == 3) {
     if (strcmp(userChecker.name, u.name) == 0) {
       fclose(fp);
-      char *buff = userChecker.password;
-      return buff;
+      return strcmp(u.password, userChecker.password);
     }
   }
 
   fclose(fp);
-  return "no user found";
+  printf("no user found");
+  return 1;
 }
