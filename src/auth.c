@@ -9,7 +9,7 @@ void loginMenu(char a[50], char pass[50])
 
     system("clear");
     printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login:");
-    scanf("%s", a);
+    scanf("%49s", a);
 
     // disabling echo
     tcgetattr(fileno(stdin), &oflags);
@@ -44,7 +44,7 @@ const char *getPassword(struct User u)
         exit(1);
     }
 
-    while (fscanf(fp, "%s %s", userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, "%49s %49s", userChecker.name, userChecker.password) != EOF)
     {
         if (strcmp(userChecker.name, u.name) == 0)
         {
