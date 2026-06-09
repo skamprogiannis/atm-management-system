@@ -31,6 +31,7 @@ struct User {
 void loginMenu(char a[50], char pass[50]);
 void registerMenu(char a[50], char pass[50]);
 bool checkPassword(struct User u);
+bool isUniqueUsername(struct User u);
 
 // system function
 int getIntInput();

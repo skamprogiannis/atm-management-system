@@ -72,9 +72,34 @@ void initMenu(struct User *u) {
       }
       break;
     case 2:
-      // student TODO : add your **Registration** function
-      // here
-      r = 1;
+      registerMenu(u->name, u->password);
+      if (isUniqueUsername(*u)) {
+        FILE *usersData = fopen("./data/users.txt", "a+");
+        struct User userChecker;
+        int maxId = -1;
+
+        if (usersData == NULL) {
+          printf("Error opening users file\n");
+          exit(1);
+        }
+
+        while (fscanf(usersData, "%d %49s %49s", &userChecker.id,
+                      userChecker.name, userChecker.password) == 3) {
+          if (userChecker.id > maxId) {
+            maxId = userChecker.id;
+          }
+        }
+
+        u->id = maxId + 1;
+        fseek(usersData, 0, SEEK_END);
+        fprintf(usersData, "%d %s %s\n", u->id, u->name, u->password);
+        fclose(usersData);
+        r = 1;
+        printf("\nSuccessful user registration!\n");
+      } else {
+        printf("\nUsername already exists\n");
+        printf("\nEnter 2 to try again or 3 to exit\n");
+      }
       break;
     case 3:
       exit(1);
