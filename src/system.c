@@ -173,3 +173,77 @@ void checkAllAccounts(struct User u) {
   fclose(pf);
   success(u);
 }
+
+void updateAccountInformation(struct User u) {
+  int accountId;
+  int option;
+  int found = 0;
+  struct Record r;
+  char userName[50];
+  const char *tempRecords = "./data/records.tmp";
+
+  system("clear");
+  printf("\t\tPlease input the account ID of the account you want to change, "
+         "%s\n\n",
+         u.name);
+  accountId = getIntInput();
+
+  do {
+    printf("\nWhich information do you want to update?\n");
+    printf("\n[1]- Country");
+    printf("\n[2]- Phone number");
+    printf("\n\nEnter your choice: ");
+    option = getIntInput();
+
+    if (option != 1 && option != 2) {
+      printf("Invalid operation!\n");
+    }
+  } while (option != 1 && option != 2);
+
+  FILE *records = fopen(RECORDS, "r");
+  if (records == NULL) {
+    printf("\nFATAL: Failed to open accounts database\n");
+    exit(1);
+  }
+
+  FILE *updatedRecords = fopen(tempRecords, "w");
+  if (updatedRecords == NULL) {
+    fclose(records);
+    printf("\nFATAL: Failed to open temporary accounts database\n");
+    exit(1);
+  }
+
+  while (getAccountFromFile(records, userName, &r)) {
+    if (strcmp(userName, u.name) == 0 && r.accountNbr == accountId) {
+      found = 1;
+
+      if (option == 1) {
+        printf("\nEnter the new country: ");
+        scanf("%99s", r.country);
+      } else {
+        printf("\nEnter the new phone number: ");
+        r.phone = getIntInput();
+      }
+    }
+
+    fprintf(updatedRecords, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n", r.id,
+            r.userId, userName, r.accountNbr, r.deposit.month, r.deposit.day,
+            r.deposit.year, r.country, r.phone, r.amount, r.accountType);
+  }
+
+  fclose(records);
+  fclose(updatedRecords);
+
+  if (!found) {
+    remove(tempRecords);
+    stayOrReturn(0, updateAccountInformation, u);
+    return;
+  }
+
+  if (rename(tempRecords, RECORDS) != 0) {
+    printf("\nFATAL: Failed to save updated accounts database\n");
+    exit(1);
+  }
+
+  success(u);
+}

@@ -20,7 +20,7 @@ void mainMenu(struct User u) {
     createNewAcc(u);
     break;
   case 2:
-    updateAccountInfo(u);
+    updateAccountInformation(u);
     break;
   case 3:
     // student TODO : add your **Check the details of existing accounts**
