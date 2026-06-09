@@ -45,7 +45,7 @@ bool checkPassword(struct User u) {
   FILE *fp;
   struct User userChecker;
 
-  if ((fp = fopen("./data/users.txt", "r")) == NULL) {
+  if ((fp = fopen(USERS, "r")) == NULL) {
     printf("Error! opening file");
     exit(1);
   }
@@ -67,7 +67,7 @@ bool isUniqueUsername(struct User u) {
   FILE *fp;
   struct User userChecker;
 
-  if ((fp = fopen("./data/users.txt", "r")) == NULL) {
+  if ((fp = fopen(USERS, "r")) == NULL) {
     printf("Error! opening file");
     exit(1);
   }
