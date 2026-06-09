@@ -319,3 +319,106 @@ void updateAccountInformation(struct User u) {
 
   success(u);
 }
+
+void transact(struct User u) {
+  int accountId;
+  char userName[50];
+  int found = 0;
+  int option;
+  int transactionDone = 0;
+  double amount;
+  struct Record r;
+  const char *tempRecords = "./data/records.tmp";
+
+  FILE *records = fopen(RECORDS, "r");
+  if (records == NULL) {
+    printf("\nFATAL: Failed to open accounts database\n");
+    exit(1);
+  }
+
+  FILE *updatedRecords = fopen(tempRecords, "w");
+  if (updatedRecords == NULL) {
+    fclose(records);
+    printf("\nFATAL: Failed to open temporary accounts database\n");
+    exit(1);
+  }
+
+  system("clear");
+  printf("\t\tPlease input the account ID of the account you want to transact "
+         "with, "
+         "%s\n\n",
+         u.name);
+  accountId = getIntInput();
+
+  while (getAccountFromFile(records, userName, &r)) {
+    if (strcmp(userName, u.name) == 0 && accountId == r.accountNbr) {
+      found = 1;
+
+      if (strcmp(r.accountType, "fixed01") == 0 ||
+          strcmp(r.accountType, "fixed02") == 0 ||
+          strcmp(r.accountType, "fixed03") == 0) {
+        printf("\n\nERROR: Account is of Fixed type and unable to make "
+               "transactions\n");
+      } else {
+        do {
+          printf(
+              "Would you like to deposit to the account or withdraw from it?");
+          printf("\n\t\t[1]- Deposit\n");
+          printf("\n\t\t[2]- Withdraw\n");
+          option = getIntInput();
+
+          if (option != 1 && option != 2) {
+            printf("Invalid operation!\n");
+          }
+        } while (option != 1 && option != 2);
+
+        printf("Select amount: ");
+        while (scanf("%lf", &amount) != 1) {
+          while (getchar() != '\n') {
+            // Clear buffer
+          }
+          printf("Invalid input. Try again: ");
+        }
+
+        if (amount <= 0) {
+          printf("\n\nERROR: Transaction amount must be greater than zero\n");
+        } else if (option == 1) {
+          r.amount += amount;
+          transactionDone = 1;
+        } else if (amount > r.amount) {
+          printf("\n\nERROR: The account does not have $%.2lf to withdraw\n",
+                 amount);
+        } else {
+          r.amount -= amount;
+          transactionDone = 1;
+        }
+      }
+    }
+
+    fprintf(updatedRecords, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n", r.id,
+            r.userId, userName, r.accountNbr, r.deposit.month, r.deposit.day,
+            r.deposit.year, r.country, r.phone, r.amount, r.accountType);
+  }
+
+  fclose(records);
+  fclose(updatedRecords);
+
+  if (!found) {
+    remove(tempRecords);
+    stayOrReturn(0, transact, u);
+    return;
+  }
+
+  if (!transactionDone) {
+    remove(tempRecords);
+    stayOrReturn(1, transact, u);
+    return;
+  }
+
+  if (rename(tempRecords, RECORDS) != 0) {
+    printf("\nFATAL: Failed to save updated accounts database\n");
+    exit(1);
+  }
+
+  success(u);
+}
