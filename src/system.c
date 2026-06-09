@@ -22,7 +22,7 @@ void stayOrReturn(int notGood, void f(struct User u), struct User u) {
     printf("\n✖ Record not found!!\n");
   invalid:
     printf("\nEnter 0 to try again, 1 to return to main menu and 2 to exit:");
-    scanf("%d", &option);
+    option = getIntInput();
     if (option == 0)
       f(u);
     else if (option == 1)
@@ -35,7 +35,7 @@ void stayOrReturn(int notGood, void f(struct User u), struct User u) {
     }
   } else {
     printf("\nEnter 1 to go to the main menu and 0 to exit:");
-    scanf("%d", &option);
+    option = getIntInput();
   }
   if (option == 1) {
     system("clear");
@@ -51,7 +51,7 @@ void success(struct User u) {
   printf("\n✔ Success!\n\n");
 invalid:
   printf("Enter 1 to go to the main menu and 0 to exit!\n");
-  scanf("%d", &option);
+  option = getIntInput();
   system("clear");
   if (option == 1) {
     mainMenu(u);
@@ -66,8 +66,9 @@ invalid:
 int getIntInput() {
   int value;
   while (scanf("%d", &value) != 1) {
-    while (getchar() != '\n')
-      ; // Clear buffer
+    while (getchar() != '\n') {
+      // Clear buffer
+    }
     printf("Invalid input. Try again: ");
   }
   return value;
@@ -128,7 +129,7 @@ void createNewAcc(struct User u) {
   printf("\nEnter the country:");
   scanf("%49s", r.country); // %49s to prevent buffer overflows
   printf("\nEnter the phone number:");
-  scanf("%d", &r.phone);
+  r.phone = getIntInput();
   printf("\nEnter amount to deposit: $");
   scanf("%lf", &r.amount);
   printf("\nChoose the type of account:\n\t-> saving\n\t-> current\n\t-> "
