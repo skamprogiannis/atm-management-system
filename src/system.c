@@ -1,424 +1,432 @@
 #include "header.h"
 
 const char *RECORDS = "./data/records.txt";
-const float SAVINGS_INTEREST = 0.07;
-const float FIXED_1YR_INTEREST = 0.04;
-const float FIXED_2YR_INTEREST = 0.05;
-const float FIXED_3YR_INTEREST = 0.08;
+const double SAVINGS_INTEREST = 0.07;
+const double FIXED_ONE_YEAR_INTEREST = 0.04;
+const double FIXED_TWO_YEAR_INTEREST = 0.05;
+const double FIXED_THREE_YEAR_INTEREST = 0.08;
 
-int getAccountFromFile(FILE *ptr, char name[50], struct Record *r) {
-  return fscanf(ptr, "%d %d %49s %d %d/%d/%d %99s %d %lf %9s", &r->id,
-                &r->userId, name, &r->accountNbr, &r->deposit.month,
-                &r->deposit.day, &r->deposit.year, r->country, &r->phone,
-                &r->amount, r->accountType) == 11;
+int getAccountFromFile(FILE *file, char ownerName[50], struct Record *record) {
+  return fscanf(file, "%d %d %49s %d %d/%d/%d %99s %d %lf %9s", &record->id,
+                &record->userId, ownerName, &record->accountNumber,
+                &record->deposit.month, &record->deposit.day,
+                &record->deposit.year, record->country, &record->phone,
+                &record->amount, record->accountType) == 11;
 }
 
-void saveAccountToFile(FILE *ptr, struct User u, struct Record r) {
-  fprintf(ptr, "%d %d %49s %d %d/%d/%d %99s %d %.2lf %9s\n\n", r.id, u.id,
-          u.name, r.accountNbr, r.deposit.month, r.deposit.day, r.deposit.year,
-          r.country, r.phone, r.amount, r.accountType);
+void saveAccountToFile(FILE *file, int userId, const char *ownerName,
+                       struct Record record) {
+  fprintf(file, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n", record.id, userId,
+          ownerName, record.accountNumber, record.deposit.month,
+          record.deposit.day, record.deposit.year, record.country, record.phone,
+          record.amount, record.accountType);
 }
 
-void stayOrReturn(int notGood, void f(struct User u), struct User u) {
+int isFixedAccount(const char *accountType) {
+  return strcmp(accountType, "fixed01") == 0 ||
+         strcmp(accountType, "fixed02") == 0 ||
+         strcmp(accountType, "fixed03") == 0;
+}
+
+void stayOrReturn(int showRetryMenu, void retryFunction(struct User user),
+                  struct User user) {
   int option;
-  if (notGood == 0) {
+  if (showRetryMenu) {
     system("clear");
-    printf("\n✖ Record not found!!\n");
+    printf("\nRecord not found.\n");
   invalid:
-    printf("\nEnter 0 to try again, 1 to return to main menu and 2 to exit:");
-    option = getIntInput();
+    printf("\nEnter 0 to try again, 1 to return to the main menu, or 2 to "
+           "exit: ");
+    option = getIntegerInput();
     if (option == 0)
-      f(u);
+      retryFunction(user);
     else if (option == 1)
-      mainMenu(u);
+      mainMenu(user);
     else if (option == 2)
       exit(0);
     else {
-      printf("Insert a valid operation!\n");
+      printf("Enter a valid option.\n");
       goto invalid;
     }
   } else {
-    printf("\nEnter 1 to go to the main menu and 0 to exit:");
-    option = getIntInput();
+    printf("\nEnter 1 to go to the main menu or 0 to exit: ");
+    option = getIntegerInput();
   }
   if (option == 1) {
     system("clear");
-    mainMenu(u);
+    mainMenu(user);
   } else {
     system("clear");
     exit(1);
   }
 }
 
-void success(struct User u) {
+void success(struct User user) {
   int option;
-  printf("\n✔ Success!\n\n");
+  printf("\nSuccess!\n\n");
 invalid:
-  printf("Enter 1 to go to the main menu and 0 to exit!\n");
-  option = getIntInput();
+  printf("Enter 1 to go to the main menu or 0 to exit: ");
+  option = getIntegerInput();
   system("clear");
   if (option == 1) {
-    mainMenu(u);
+    mainMenu(user);
   } else if (option == 0) {
     exit(1);
   } else {
-    printf("Insert a valid operation!\n");
+    printf("Enter a valid option.\n");
     goto invalid;
   }
 }
 
-int getIntInput() {
+int getIntegerInput() {
   int value;
   while (scanf("%d", &value) != 1) {
     while (getchar() != '\n') {
-      // Clear buffer
+      // Discard invalid input.
     }
     printf("Invalid input. Try again: ");
   }
   return value;
 }
 
-void createNewAcc(struct User u) {
-  struct Record r;
-  struct Record cr;
-  char userName[50];
-  char myChar;
+void createNewAccount(struct User user) {
+  struct Record record;
+  struct Record currentRecord;
+  char ownerName[50];
+  char continueInput;
   int accountExists;
 
   do {
     accountExists = 0;
-    FILE *pf = fopen(RECORDS, "a+");
-    if (pf == NULL) {
-      printf("Error: Could not open database.\n");
+    FILE *recordsFile = fopen(RECORDS, "a+");
+    if (recordsFile == NULL) {
+      printf("Error: Could not open the accounts database.\n");
       return;
     }
 
     system("clear");
-    printf("\t\t\t===== New record =====\n");
+    printf("\t\t\t===== New account =====\n");
 
     int validDate = 0;
     while (!validDate) {
-      printf("\nEnter today's date(mm/dd/yyyy): ");
-      if (scanf("%d/%d/%d", &r.deposit.month, &r.deposit.day,
-                &r.deposit.year) == 3) {
-        if (r.deposit.month >= 1 && r.deposit.month <= 12 &&
-            r.deposit.day >= 1 && r.deposit.day <= 31) {
+      printf("\nEnter today's date (mm/dd/yyyy): ");
+      if (scanf("%d/%d/%d", &record.deposit.month, &record.deposit.day,
+                &record.deposit.year) == 3) {
+        if (record.deposit.month >= 1 && record.deposit.month <= 12 &&
+            record.deposit.day >= 1 && record.deposit.day <= 31) {
           validDate = 1;
         } else {
-          printf("Invalid date values! Please try again.\n");
+          printf("Invalid date. Please try again.\n");
         }
       } else {
-        printf("Invalid format! Use mm/dd/yyyy.\n");
-        while (getchar() != '\n')
-          ; // Clear the "trash" (like letters or dashes)
+        printf("Invalid date format. Use mm/dd/yyyy.\n");
+        while (getchar() != '\n') {
+          // Discard invalid input.
+        }
       }
     }
-    printf("\nEnter the account number:");
-    r.accountNbr = getIntInput();
+    printf("\nEnter the account number: ");
+    record.accountNumber = getIntegerInput();
 
-    // Check for duplicates
-    rewind(pf);
-    while (getAccountFromFile(pf, userName, &cr)) {
-      if (strcmp(userName, u.name) == 0 && cr.accountNbr == r.accountNbr) {
-        printf("✖ This Account already exists for this user\n\n");
-        scanf(" %c", &myChar); // Stop so the user sees the message
+    rewind(recordsFile);
+    while (getAccountFromFile(recordsFile, ownerName, &currentRecord)) {
+      if (strcmp(ownerName, user.name) == 0 &&
+          currentRecord.accountNumber == record.accountNumber) {
+        printf("This account already exists for this user.\n\n");
+        printf("Enter any character to continue: ");
+        scanf(" %c", &continueInput);
         accountExists = 1;
         break;
       }
     }
 
-    fclose(pf);
+    fclose(recordsFile);
 
-  } while (accountExists); // if accountExists == 1, restart the loop
+  } while (accountExists);
 
-  printf("\nEnter the country:");
-  scanf("%49s", r.country); // %49s to prevent buffer overflows
-  printf("\nEnter the phone number:");
-  r.phone = getIntInput();
-  printf("\nEnter amount to deposit: $");
-  scanf("%lf", &r.amount);
-  printf("\nChoose the type of account:\n\t-> saving\n\t-> current\n\t-> "
-         "fixed01(for 1 year)\n\t-> fixed02(for 2 years)\n\t-> fixed03(for 3 "
-         "years)\n\n\tEnter your choice:");
-  scanf("%9s", r.accountType);
+  printf("\nEnter the country: ");
+  scanf("%49s", record.country);
+  printf("\nEnter the phone number: ");
+  record.phone = getIntegerInput();
+  printf("\nEnter the amount to deposit: $");
+  scanf("%lf", &record.amount);
+  printf(
+      "\nChoose an account type:\n\t-> savings\n\t-> current\n\t-> "
+      "fixed01 (for 1 year)\n\t-> fixed02 (for 2 years)\n\t-> fixed03 (for 3 "
+      "years)\n\n\tEnter your choice: ");
+  scanf("%9s", record.accountType);
 
-  FILE *pf_final = fopen(RECORDS, "a+");
-  if (pf_final == NULL) {
-    printf("\nFATAL: Failed to open accounts database");
+  FILE *recordsFile = fopen(RECORDS, "a+");
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
     exit(1);
   }
 
-  saveAccountToFile(pf_final, u, r);
-  fclose(pf_final);
-  success(u);
+  saveAccountToFile(recordsFile, user.id, user.name, record);
+  fclose(recordsFile);
+  success(user);
 }
 
-void checkAllAccounts(struct User u) {
-  char userName[100];
-  struct Record r;
+void checkAllAccounts(struct User user) {
+  char ownerName[100];
+  struct Record record;
 
-  FILE *pf = fopen(RECORDS, "r");
-  if (pf == NULL) {
-    printf("\nFATAL: Failed to open accounts database\n");
+  FILE *recordsFile = fopen(RECORDS, "r");
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
     exit(1);
   }
 
   system("clear");
-  printf("\t\t====== All accounts from user, %s =====\n\n", u.name);
-  while (getAccountFromFile(pf, userName, &r)) {
-    if (strcmp(userName, u.name) == 0) {
+  printf("\t\t====== Accounts owned by %s =====\n\n", user.name);
+  while (getAccountFromFile(recordsFile, ownerName, &record)) {
+    if (strcmp(ownerName, user.name) == 0) {
       printf("_____________________\n");
-      printf("\nAccount number:%d\n"
-             "Deposit Date:%d/%d/%d \n"
-             "country:%s \n"
-             "Phone number:%d \n"
-             "Amount deposited: $%.2f \n"
-             "Type Of Account:%s\n",
-             r.accountNbr, r.deposit.day, r.deposit.month, r.deposit.year,
-             r.country, r.phone, r.amount, r.accountType);
+      printf("\nAccount number: %d\n"
+             "Deposit date: %d/%d/%d\n"
+             "Country: %s\n"
+             "Phone number: %d\n"
+             "Amount deposited: $%.2f\n"
+             "Type of account: %s\n",
+             record.accountNumber, record.deposit.day, record.deposit.month,
+             record.deposit.year, record.country, record.phone, record.amount,
+             record.accountType);
     }
   }
-  fclose(pf);
-  success(u);
+  fclose(recordsFile);
+  success(user);
 }
 
 double getInterestRate(const char *accountType) {
-  if (strcmp(accountType, "saving") == 0)
-    return 0.07;
+  if (strcmp(accountType, "saving") == 0 || strcmp(accountType, "savings") == 0)
+    return SAVINGS_INTEREST;
   if (strcmp(accountType, "fixed01") == 0)
-    return 0.04;
+    return FIXED_ONE_YEAR_INTEREST;
   if (strcmp(accountType, "fixed02") == 0)
-    return 0.05;
+    return FIXED_TWO_YEAR_INTEREST;
   if (strcmp(accountType, "fixed03") == 0)
-    return 0.08;
+    return FIXED_THREE_YEAR_INTEREST;
   return 0.0;
 }
 
-void checkAccountDetails(struct User u) {
-  char userName[100];
-  struct Record r;
-  int accountNbr;
+void checkAccountDetails(struct User user) {
+  char ownerName[100];
+  struct Record record;
+  int accountNumber;
   int found = 0;
   double interestRate;
   double monthlyInterest;
 
-  FILE *pf = fopen(RECORDS, "r");
-  if (pf == NULL) {
-    printf("\nFATAL: Failed to open accounts database\n");
+  FILE *recordsFile = fopen(RECORDS, "r");
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
     exit(1);
   }
 
   system("clear");
-  printf("Enter the ID of the account whose details you want to see: ");
-  accountNbr = getIntInput();
-  while (getAccountFromFile(pf, userName, &r)) {
-    if (strcmp(userName, u.name) == 0 && accountNbr == r.accountNbr) {
+  printf("Enter the account number you want to inspect: ");
+  accountNumber = getIntegerInput();
+  while (getAccountFromFile(recordsFile, ownerName, &record)) {
+    if (strcmp(ownerName, user.name) == 0 &&
+        accountNumber == record.accountNumber) {
       found = 1;
-      printf("\nAccount number:%d\n"
-             "Deposit Date:%d/%d/%d \n"
-             "country:%s \n"
-             "Phone number:%d \n"
-             "Amount deposited: $%.2f \n"
-             "Type Of Account:%s\n",
-             r.accountNbr, r.deposit.day, r.deposit.month, r.deposit.year,
-             r.country, r.phone, r.amount, r.accountType);
+      printf("\nAccount number: %d\n"
+             "Deposit date: %d/%d/%d\n"
+             "Country: %s\n"
+             "Phone number: %d\n"
+             "Amount deposited: $%.2f\n"
+             "Type of account: %s\n",
+             record.accountNumber, record.deposit.day, record.deposit.month,
+             record.deposit.year, record.country, record.phone, record.amount,
+             record.accountType);
 
-      if (strcmp(r.accountType, "current") != 0) {
-        interestRate = getInterestRate(r.accountType);
-        monthlyInterest = r.amount * interestRate / 12;
-        printf("You will get $%.2lf as interest on day %d of every month",
-               monthlyInterest, r.deposit.day);
+      if (strcmp(record.accountType, "current") != 0) {
+        interestRate = getInterestRate(record.accountType);
+        monthlyInterest = record.amount * interestRate / 12;
+        printf("You will get $%.2lf as interest on day %d of every month.\n",
+               monthlyInterest, record.deposit.day);
       } else {
-        printf("You will not get interests because the account is of type "
-               "current");
+        printf(
+            "You will not get interest because this is a current account.\n");
       }
       break;
     }
   }
 
-  fclose(pf);
+  fclose(recordsFile);
 
   if (!found) {
-    stayOrReturn(0, checkAccountDetails, u);
+    stayOrReturn(1, checkAccountDetails, user);
     return;
   }
 
-  success(u);
+  success(user);
 }
 
-void updateAccountInformation(struct User u) {
-  int accountId;
+void updateAccountInformation(struct User user) {
+  int accountNumber;
   int option;
   int found = 0;
-  struct Record r;
-  char userName[50];
+  struct Record record;
+  char ownerName[50];
   const char *tempRecords = "./data/records.tmp";
 
   system("clear");
-  printf("\t\tPlease input the account ID of the account you want to change, "
-         "%s\n\n",
-         u.name);
-  accountId = getIntInput();
+  printf("\t\tEnter the account number you want to update, %s:\n\n", user.name);
+  accountNumber = getIntegerInput();
 
   do {
     printf("\nWhich information do you want to update?\n");
     printf("\n[1]- Country");
     printf("\n[2]- Phone number");
     printf("\n\nEnter your choice: ");
-    option = getIntInput();
+    option = getIntegerInput();
 
     if (option != 1 && option != 2) {
-      printf("Invalid operation!\n");
+      printf("Invalid option.\n");
     }
   } while (option != 1 && option != 2);
 
-  FILE *records = fopen(RECORDS, "r");
-  if (records == NULL) {
-    printf("\nFATAL: Failed to open accounts database\n");
+  FILE *recordsFile = fopen(RECORDS, "r");
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
     exit(1);
   }
 
-  FILE *updatedRecords = fopen(tempRecords, "w");
-  if (updatedRecords == NULL) {
-    fclose(records);
-    printf("\nFATAL: Failed to open temporary accounts database\n");
+  FILE *updatedRecordsFile = fopen(tempRecords, "w");
+  if (updatedRecordsFile == NULL) {
+    fclose(recordsFile);
+    printf("\nError: Failed to open the temporary accounts database.\n");
     exit(1);
   }
 
-  while (getAccountFromFile(records, userName, &r)) {
-    if (strcmp(userName, u.name) == 0 && r.accountNbr == accountId) {
+  while (getAccountFromFile(recordsFile, ownerName, &record)) {
+    if (strcmp(ownerName, user.name) == 0 &&
+        record.accountNumber == accountNumber) {
       found = 1;
 
       if (option == 1) {
         printf("\nEnter the new country: ");
-        scanf("%99s", r.country);
+        scanf("%99s", record.country);
       } else {
         printf("\nEnter the new phone number: ");
-        r.phone = getIntInput();
+        record.phone = getIntegerInput();
       }
     }
 
-    fprintf(updatedRecords, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n", r.id,
-            r.userId, userName, r.accountNbr, r.deposit.month, r.deposit.day,
-            r.deposit.year, r.country, r.phone, r.amount, r.accountType);
+    saveAccountToFile(updatedRecordsFile, record.userId, ownerName, record);
   }
 
-  fclose(records);
-  fclose(updatedRecords);
+  fclose(recordsFile);
+  fclose(updatedRecordsFile);
 
   if (!found) {
     remove(tempRecords);
-    stayOrReturn(0, updateAccountInformation, u);
+    stayOrReturn(1, updateAccountInformation, user);
     return;
   }
 
   if (rename(tempRecords, RECORDS) != 0) {
-    printf("\nFATAL: Failed to save updated accounts database\n");
+    printf("\nError: Failed to save the updated accounts database.\n");
     exit(1);
   }
 
-  success(u);
+  success(user);
 }
 
-void transact(struct User u) {
-  int accountId;
-  char userName[50];
+void makeTransaction(struct User user) {
+  int accountNumber;
+  char ownerName[50];
   int found = 0;
   int option;
-  int transactionDone = 0;
+  int transactionCompleted = 0;
   double amount;
-  struct Record r;
+  struct Record record;
   const char *tempRecords = "./data/records.tmp";
 
-  FILE *records = fopen(RECORDS, "r");
-  if (records == NULL) {
-    printf("\nFATAL: Failed to open accounts database\n");
+  FILE *recordsFile = fopen(RECORDS, "r");
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
     exit(1);
   }
 
-  FILE *updatedRecords = fopen(tempRecords, "w");
-  if (updatedRecords == NULL) {
-    fclose(records);
-    printf("\nFATAL: Failed to open temporary accounts database\n");
+  FILE *updatedRecordsFile = fopen(tempRecords, "w");
+  if (updatedRecordsFile == NULL) {
+    fclose(recordsFile);
+    printf("\nError: Failed to open the temporary accounts database.\n");
     exit(1);
   }
 
   system("clear");
-  printf("\t\tPlease input the account ID of the account you want to transact "
-         "with, "
-         "%s\n\n",
-         u.name);
-  accountId = getIntInput();
+  printf("\t\tEnter the account number for the transaction, %s:\n\n",
+         user.name);
+  accountNumber = getIntegerInput();
 
-  while (getAccountFromFile(records, userName, &r)) {
-    if (strcmp(userName, u.name) == 0 && accountId == r.accountNbr) {
+  while (getAccountFromFile(recordsFile, ownerName, &record)) {
+    if (strcmp(ownerName, user.name) == 0 &&
+        accountNumber == record.accountNumber) {
       found = 1;
 
-      if (strcmp(r.accountType, "fixed01") == 0 ||
-          strcmp(r.accountType, "fixed02") == 0 ||
-          strcmp(r.accountType, "fixed03") == 0) {
-        printf("\n\nERROR: Account is of Fixed type and unable to make "
-               "transactions\n");
+      if (isFixedAccount(record.accountType)) {
+        printf("\nFixed accounts cannot make transactions.\n");
       } else {
         do {
-          printf(
-              "Would you like to deposit to the account or withdraw from it?");
+          printf("Would you like to deposit money or withdraw money?");
           printf("\n\t\t[1]- Deposit\n");
           printf("\n\t\t[2]- Withdraw\n");
-          option = getIntInput();
+          printf("\nEnter your choice: ");
+          option = getIntegerInput();
 
           if (option != 1 && option != 2) {
-            printf("Invalid operation!\n");
+            printf("Invalid option.\n");
           }
         } while (option != 1 && option != 2);
 
-        printf("Select amount: ");
+        printf("Enter the amount: ");
         while (scanf("%lf", &amount) != 1) {
           while (getchar() != '\n') {
-            // Clear buffer
+            // Discard invalid input.
           }
           printf("Invalid input. Try again: ");
         }
 
         if (amount <= 0) {
-          printf("\n\nERROR: Transaction amount must be greater than zero\n");
+          printf("\nTransaction amount must be greater than zero.\n");
         } else if (option == 1) {
-          r.amount += amount;
-          transactionDone = 1;
-        } else if (amount > r.amount) {
-          printf("\n\nERROR: The account does not have $%.2lf to withdraw\n",
+          record.amount += amount;
+          transactionCompleted = 1;
+        } else if (amount > record.amount) {
+          printf("\nThe account does not have $%.2lf available to withdraw.\n",
                  amount);
         } else {
-          r.amount -= amount;
-          transactionDone = 1;
+          record.amount -= amount;
+          transactionCompleted = 1;
         }
       }
     }
 
-    fprintf(updatedRecords, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n", r.id,
-            r.userId, userName, r.accountNbr, r.deposit.month, r.deposit.day,
-            r.deposit.year, r.country, r.phone, r.amount, r.accountType);
+    saveAccountToFile(updatedRecordsFile, record.userId, ownerName, record);
   }
 
-  fclose(records);
-  fclose(updatedRecords);
+  fclose(recordsFile);
+  fclose(updatedRecordsFile);
 
   if (!found) {
     remove(tempRecords);
-    stayOrReturn(0, transact, u);
+    stayOrReturn(1, makeTransaction, user);
     return;
   }
 
-  if (!transactionDone) {
+  if (!transactionCompleted) {
     remove(tempRecords);
-    stayOrReturn(1, transact, u);
+    stayOrReturn(0, makeTransaction, user);
     return;
   }
 
   if (rename(tempRecords, RECORDS) != 0) {
-    printf("\nFATAL: Failed to save updated accounts database\n");
+    printf("\nError: Failed to save the updated accounts database.\n");
     exit(1);
   }
 
-  success(u);
+  success(user);
 }

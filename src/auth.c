@@ -1,29 +1,32 @@
 #include "header.h"
-#include <stdbool.h>
 #include <termios.h>
 
-char *USERS = "./data/users.txt";
+const char *USERS = "./data/users.txt";
 
-void registerMenu(char a[50], char pass[50]) {
+void registerMenu(char name[50], char password[50]) {
   system("clear");
-  printf(
-      "\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\tPick your username:");
-  scanf("%49s", a);
+  printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\tChoose a "
+         "username: ");
+  scanf("%49s", name);
 
-  printf("\n\n\n\n\n\t\t\t\tCreate your password:");
-  scanf("%49s", pass);
+  printf("\n\n\n\n\n\t\t\t\tCreate a password: ");
+  scanf("%49s", password);
 }
 
-void loginMenu(char a[50], char pass[50]) {
+void loginMenu(char name[50], char password[50]) {
   struct termios oflags, nflags;
 
   system("clear");
-  printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login:");
-  scanf("%49s", a);
+  printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\tUsername: ");
+  scanf("%49s", name);
 
-  // disabling echo
-  tcgetattr(fileno(stdin), &oflags);
+  // Save current terminal settings so password input can be hidden temporarily.
+  if (tcgetattr(fileno(stdin), &oflags) != 0) {
+    perror("tcgetattr");
+    return exit(1);
+  }
   nflags = oflags;
+  // Disable typed-character echo while keeping Enter/newline behavior normal.
   nflags.c_lflag &= ~ECHO;
   nflags.c_lflag |= ECHONL;
 
@@ -31,55 +34,55 @@ void loginMenu(char a[50], char pass[50]) {
     perror("tcsetattr");
     return exit(1);
   }
-  printf("\n\n\n\n\n\t\t\t\tEnter the password to login:");
-  scanf("%49s", pass);
+  printf("\n\n\n\n\n\t\t\t\tPassword: ");
+  scanf("%49s", password);
 
-  // restore terminal
+  // Restore the original terminal settings so later input is visible again.
   if (tcsetattr(fileno(stdin), TCSANOW, &oflags) != 0) {
     perror("tcsetattr");
     return exit(1);
   }
 }
 
-bool checkPassword(struct User u) {
-  FILE *fp;
+int authenticateUser(struct User user) {
+  FILE *usersFile;
   struct User userChecker;
 
-  if ((fp = fopen(USERS, "r")) == NULL) {
-    printf("Error! opening file");
+  if ((usersFile = fopen(USERS, "r")) == NULL) {
+    printf("Error opening users file.\n");
     exit(1);
   }
 
-  while (fscanf(fp, "%d %49s %49s", &userChecker.id, userChecker.name,
+  while (fscanf(usersFile, "%d %49s %49s", &userChecker.id, userChecker.name,
                 userChecker.password) == 3) {
-    if (strcmp(userChecker.name, u.name) == 0) {
-      fclose(fp);
-      return strcmp(u.password, userChecker.password) == 0;
+    if (strcmp(userChecker.name, user.name) == 0) {
+      fclose(usersFile);
+      return strcmp(user.password, userChecker.password) == 0;
     }
   }
 
-  fclose(fp);
-  printf("no user found");
-  return false;
+  fclose(usersFile);
+  printf("User not found.\n");
+  return 0;
 }
 
-bool isUniqueUsername(struct User u) {
-  FILE *fp;
+int isUniqueUsername(struct User user) {
+  FILE *usersFile;
   struct User userChecker;
 
-  if ((fp = fopen(USERS, "r")) == NULL) {
-    printf("Error! opening file");
+  if ((usersFile = fopen(USERS, "r")) == NULL) {
+    printf("Error opening users file.\n");
     exit(1);
   }
 
-  while (fscanf(fp, "%d %49s %49s", &userChecker.id, userChecker.name,
+  while (fscanf(usersFile, "%d %49s %49s", &userChecker.id, userChecker.name,
                 userChecker.password) == 3) {
-    if (strcmp(userChecker.name, u.name) == 0) {
-      fclose(fp);
-      return false;
+    if (strcmp(userChecker.name, user.name) == 0) {
+      fclose(usersFile);
+      return 0;
     }
   }
 
-  fclose(fp);
-  return true;
+  fclose(usersFile);
+  return 1;
 }

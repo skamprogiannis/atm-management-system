@@ -1,83 +1,81 @@
 #include "header.h"
 
-void mainMenu(struct User u) {
+void mainMenu(struct User user) {
   int option;
   system("clear");
   printf("\n\n\t\t======= ATM =======\n\n");
-  printf("\n\t\t-->> Feel free to choose one of the options below <<--\n");
+  printf("\n\t\tChoose one of the options below:\n");
   printf("\n\t\t[1]- Create a new account\n");
   printf("\n\t\t[2]- Update account information\n");
-  printf("\n\t\t[3]- Check accounts\n");
-  printf("\n\t\t[4]- Check list of owned account\n");
-  printf("\n\t\t[5]- Make Transaction\n");
+  printf("\n\t\t[3]- Check account details\n");
+  printf("\n\t\t[4]- List owned accounts\n");
+  printf("\n\t\t[5]- Make a transaction\n");
   printf("\n\t\t[6]- Remove existing account\n");
   printf("\n\t\t[7]- Transfer ownership\n");
   printf("\n\t\t[8]- Exit\n");
-  option = getIntInput();
+  option = getIntegerInput();
 
   switch (option) {
   case 1:
-    createNewAcc(u);
+    createNewAccount(user);
     break;
   case 2:
-    updateAccountInformation(u);
+    updateAccountInformation(user);
     break;
   case 3:
-    checkAccountDetails(u);
+    checkAccountDetails(user);
     break;
   case 4:
-    checkAllAccounts(u);
+    checkAllAccounts(user);
     break;
   case 5:
-    transact(u);
+    makeTransaction(user);
     break;
   case 6:
-    // student TODO : add your **Remove existing account** function
-    // here
+    printf("Feature not implemented yet.\n");
     break;
   case 7:
-    // student TODO : add your **Transfer owner** function
-    // here
+    printf("Feature not implemented yet.\n");
     break;
   case 8:
     exit(1);
     break;
   default:
-    printf("Invalid operation!\n");
+    printf("Invalid option.\n");
   }
-};
+}
 
-void initMenu(struct User *u) {
-  int r = 0;
+void initMenu(struct User *user) {
+  int authenticated = 0;
   int option;
   system("clear");
   printf("\n\n\t\t======= ATM =======\n");
-  printf("\n\t\t-->> Feel free to login / register :\n");
-  printf("\n\t\t[1]- login\n");
-  printf("\n\t\t[2]- register\n");
-  printf("\n\t\t[3]- exit\n");
-  while (!r) {
-    option = getIntInput();
+  printf("\n\t\tChoose one of the options below:\n");
+  printf("\n\t\t[1]- Login\n");
+  printf("\n\t\t[2]- Register\n");
+  printf("\n\t\t[3]- Exit\n");
+  while (!authenticated) {
+    option = getIntegerInput();
     switch (option) {
     case 1:
-      loginMenu(u->name, u->password);
-      if (checkPassword(*u)) {
-        printf("\n\nPassword Match!");
-        r = 1;
+      loginMenu(user->name, user->password);
+      if (authenticateUser(*user)) {
+        printf("\n\nLogin successful!\n");
+        authenticated = 1;
       } else {
-        printf("\nWrong password or username\n");
-        printf("\nEnter 1 to try again or 3 to exit\n");
+        printf("\nIncorrect username or password.\n");
+        printf("\nEnter 1 to try again or 3 to exit.\n");
       }
       break;
     case 2:
-      registerMenu(u->name, u->password);
-      if (isUniqueUsername(*u)) {
+      registerMenu(user->name, user->password);
+      if (isUniqueUsername(*user)) {
         FILE *usersData = fopen("./data/users.txt", "a+");
         struct User userChecker;
         int maxId = -1;
 
         if (usersData == NULL) {
-          printf("Error opening users file\n");
+          printf("Error opening users file.\n");
           exit(1);
         }
 
@@ -88,30 +86,30 @@ void initMenu(struct User *u) {
           }
         }
 
-        u->id = maxId + 1;
+        user->id = maxId + 1;
         fseek(usersData, 0, SEEK_END);
-        fprintf(usersData, "%d %s %s\n", u->id, u->name, u->password);
+        fprintf(usersData, "%d %s %s\n", user->id, user->name, user->password);
         fclose(usersData);
-        r = 1;
-        printf("\nSuccessful user registration!\n");
+        authenticated = 1;
+        printf("\nUser registration successful!\n");
       } else {
-        printf("\nUsername already exists\n");
-        printf("\nEnter 2 to try again or 3 to exit\n");
+        printf("\nUsername already exists.\n");
+        printf("\nEnter 2 to try again or 3 to exit.\n");
       }
       break;
     case 3:
       exit(1);
       break;
     default:
-      printf("Insert a valid operation!\n");
+      printf("Enter a valid option.\n");
     }
   }
-};
+}
 
 int main() {
-  struct User u;
+  struct User user;
 
-  initMenu(&u);
-  mainMenu(u);
+  initMenu(&user);
+  mainMenu(user);
   return 0;
 }
