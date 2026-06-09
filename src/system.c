@@ -154,6 +154,10 @@ void checkAllAccounts(struct User u) {
   struct Record r;
 
   FILE *pf = fopen(RECORDS, "r");
+  if (pf == NULL) {
+    printf("\nFATAL: Failed to open accounts database\n");
+    exit(1);
+  }
 
   system("clear");
   printf("\t\t====== All accounts from user, %s =====\n\n", u.name);
