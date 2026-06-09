@@ -18,28 +18,27 @@ void mainMenu(struct User user) {
   switch (option) {
   case 1:
     createNewAccount(user);
-    break;
+    return;
   case 2:
     updateAccountInformation(user);
-    break;
+    return;
   case 3:
     checkAccountDetails(user);
-    break;
+    return;
   case 4:
     checkAllAccounts(user);
-    break;
+    return;
   case 5:
     makeTransaction(user);
-    break;
+    return;
   case 6:
     removeAccount(user);
-    break;
+    return;
   case 7:
     printf("Feature not implemented yet.\n");
-    break;
+    return;
   case 8:
     exit(1);
-    break;
   default:
     printf("Invalid option.\n");
   }

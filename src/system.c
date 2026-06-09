@@ -38,13 +38,15 @@ void stayOrReturn(int showRetryMenu, void retryFunction(struct User user),
     printf("\nEnter 0 to try again, 1 to return to the main menu, or 2 to "
            "exit: ");
     option = getIntegerInput();
-    if (option == 0)
+    if (option == 0) {
       retryFunction(user);
-    else if (option == 1)
+      return;
+    } else if (option == 1) {
       mainMenu(user);
-    else if (option == 2)
+      return;
+    } else if (option == 2) {
       exit(0);
-    else {
+    } else {
       printf("Enter a valid option.\n");
       goto invalid;
     }
@@ -55,6 +57,7 @@ void stayOrReturn(int showRetryMenu, void retryFunction(struct User user),
   if (option == 1) {
     system("clear");
     mainMenu(user);
+    return;
   } else {
     system("clear");
     exit(1);
@@ -64,18 +67,19 @@ void stayOrReturn(int showRetryMenu, void retryFunction(struct User user),
 void success(struct User user) {
   int option;
   printf("\nSuccess!\n\n");
-invalid:
-  printf("Enter 1 to go to the main menu or 0 to exit: ");
-  option = getIntegerInput();
-  system("clear");
-  if (option == 1) {
-    mainMenu(user);
-  } else if (option == 0) {
-    exit(1);
-  } else {
-    printf("Enter a valid option.\n");
-    goto invalid;
-  }
+  do {
+    printf("Enter 1 to go to the main menu or 0 to exit: ");
+    option = getIntegerInput();
+    system("clear");
+    if (option == 1) {
+      mainMenu(user);
+      return;
+    } else if (option == 0) {
+      exit(1);
+    } else {
+      printf("Enter a valid option.\n");
+    }
+  } while (option != 0 && option != 1);
 }
 
 int getIntegerInput() {
