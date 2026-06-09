@@ -78,6 +78,7 @@ void createNewAcc(struct User u) {
   struct Record r;
   struct Record cr;
   char userName[50];
+  char myChar;
   int accountExists;
 
   do {
@@ -135,9 +136,14 @@ void createNewAcc(struct User u) {
   printf("\nChoose the type of account:\n\t-> saving\n\t-> current\n\t-> "
          "fixed01(for 1 year)\n\t-> fixed02(for 2 years)\n\t-> fixed03(for 3 "
          "years)\n\n\tEnter your choice:");
-  scanf("%s", r.accountType);
+  scanf("%9s", r.accountType);
 
   FILE *pf_final = fopen(RECORDS, "a+");
+  if (pf_final == NULL) {
+    printf("\nFATAL: Failed to open accounts database");
+    exit(1);
+  }
+
   saveAccountToFile(pf_final, u, r);
   fclose(pf_final);
   success(u);
