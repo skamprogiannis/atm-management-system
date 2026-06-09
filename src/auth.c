@@ -32,7 +32,7 @@ void loginMenu(char a[50], char pass[50]) {
   }
 }
 
-int checkPassword(struct User u) {
+bool checkPassword(struct User u) {
   FILE *fp;
   struct User userChecker;
 
@@ -45,11 +45,11 @@ int checkPassword(struct User u) {
                 userChecker.password) == 3) {
     if (strcmp(userChecker.name, u.name) == 0) {
       fclose(fp);
-      return strcmp(u.password, userChecker.password);
+      return strcmp(u.password, userChecker.password) == 0;
     }
   }
 
   fclose(fp);
   printf("no user found");
-  return 1;
+  return false;
 }
