@@ -1,6 +1,10 @@
 #include "header.h"
 
 const char *RECORDS = "./data/records.txt";
+const float SAVINGS_INTEREST = 0.07;
+const float FIXED_1YR_INTEREST = 0.04;
+const float FIXED_2YR_INTEREST = 0.05;
+const float FIXED_3YR_INTEREST = 0.08;
 
 int getAccountFromFile(FILE *ptr, char name[50], struct Record *r) {
   return fscanf(ptr, "%d %d %49s %d %d/%d/%d %99s %d %lf %9s", &r->id,
@@ -175,6 +179,70 @@ void checkAllAccounts(struct User u) {
     }
   }
   fclose(pf);
+  success(u);
+}
+
+double getInterestRate(const char *accountType) {
+  if (strcmp(accountType, "saving") == 0)
+    return 0.07;
+  if (strcmp(accountType, "fixed01") == 0)
+    return 0.04;
+  if (strcmp(accountType, "fixed02") == 0)
+    return 0.05;
+  if (strcmp(accountType, "fixed03") == 0)
+    return 0.08;
+  return 0.0;
+}
+
+void checkAccountDetails(struct User u) {
+  char userName[100];
+  struct Record r;
+  int accountNbr;
+  int found = 0;
+  double interestRate;
+  double monthlyInterest;
+
+  FILE *pf = fopen(RECORDS, "r");
+  if (pf == NULL) {
+    printf("\nFATAL: Failed to open accounts database\n");
+    exit(1);
+  }
+
+  system("clear");
+  printf("Enter the ID of the account whose details you want to see: ");
+  accountNbr = getIntInput();
+  while (getAccountFromFile(pf, userName, &r)) {
+    if (strcmp(userName, u.name) == 0 && accountNbr == r.accountNbr) {
+      found = 1;
+      printf("\nAccount number:%d\n"
+             "Deposit Date:%d/%d/%d \n"
+             "country:%s \n"
+             "Phone number:%d \n"
+             "Amount deposited: $%.2f \n"
+             "Type Of Account:%s\n",
+             r.accountNbr, r.deposit.day, r.deposit.month, r.deposit.year,
+             r.country, r.phone, r.amount, r.accountType);
+
+      if (strcmp(r.accountType, "current") != 0) {
+        interestRate = getInterestRate(r.accountType);
+        monthlyInterest = r.amount * interestRate / 12;
+        printf("You will get $%.2lf as interest on day %d of every month",
+               monthlyInterest, r.deposit.day);
+      } else {
+        printf("You will not get interests because the account is of type "
+               "current");
+      }
+      break;
+    }
+  }
+
+  fclose(pf);
+
+  if (!found) {
+    stayOrReturn(0, checkAccountDetails, u);
+    return;
+  }
+
   success(u);
 }
 
