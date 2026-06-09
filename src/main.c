@@ -32,7 +32,7 @@ void mainMenu(struct User user) {
     makeTransaction(user);
     break;
   case 6:
-    printf("Feature not implemented yet.\n");
+    removeAccount(user);
     break;
   case 7:
     printf("Feature not implemented yet.\n");

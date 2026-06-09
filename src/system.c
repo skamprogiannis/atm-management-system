@@ -334,6 +334,57 @@ void updateAccountInformation(struct User user) {
   success(user);
 }
 
+void removeAccount(struct User user) {
+  int accountNumber;
+  int found = 0;
+  struct Record record;
+  char ownerName[50];
+  const char *tempRecords = "./data/records.tmp";
+
+  system("clear");
+  printf("\t\tEnter the number of the account you want to delete, %s:\n\n",
+         user.name);
+  accountNumber = getIntegerInput();
+
+  FILE *recordsFile = fopen(RECORDS, "r");
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
+    exit(1);
+  }
+
+  FILE *updatedRecordsFile = fopen(tempRecords, "w");
+  if (updatedRecordsFile == NULL) {
+    fclose(recordsFile);
+    printf("\nError: Failed to open the temporary accounts database.\n");
+    exit(1);
+  }
+
+  while (getAccountFromFile(recordsFile, ownerName, &record)) {
+    if (strcmp(ownerName, user.name) == 0 &&
+        record.accountNumber == accountNumber) {
+      found = 1;
+    } else {
+      saveAccountToFile(updatedRecordsFile, record.userId, ownerName, record);
+    }
+  }
+
+  fclose(recordsFile);
+  fclose(updatedRecordsFile);
+
+  if (!found) {
+    remove(tempRecords);
+    stayOrReturn(1, removeAccount, user);
+    return;
+  }
+
+  if (rename(tempRecords, RECORDS) != 0) {
+    printf("\nError: Failed to save the updated accounts database.\n");
+    exit(1);
+  }
+
+  success(user);
+}
+
 void makeTransaction(struct User user) {
   int accountNumber;
   char ownerName[50];
