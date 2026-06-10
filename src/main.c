@@ -35,7 +35,7 @@ void mainMenu(struct User user) {
     removeAccount(user);
     return;
   case 7:
-    printf("Feature not implemented yet.\n");
+    transferAccount(user);
     return;
   case 8:
     exit(1);

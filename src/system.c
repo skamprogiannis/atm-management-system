@@ -1,10 +1,11 @@
 #include "header.h"
 
-const char *RECORDS = "./data/records.txt";
-const double SAVINGS_INTEREST = 0.07;
-const double FIXED_ONE_YEAR_INTEREST = 0.04;
-const double FIXED_TWO_YEAR_INTEREST = 0.05;
-const double FIXED_THREE_YEAR_INTEREST = 0.08;
+static const char *RECORDS = "./data/records.txt";
+static const char *USERS = "./data/users.txt";
+static const double SAVINGS_INTEREST = 0.07;
+static const double FIXED_ONE_YEAR_INTEREST = 0.04;
+static const double FIXED_TWO_YEAR_INTEREST = 0.05;
+static const double FIXED_THREE_YEAR_INTEREST = 0.08;
 
 int getAccountFromFile(FILE *file, char ownerName[50], struct Record *record) {
   return fscanf(file, "%d %d %49s %d %d/%d/%d %99s %d %lf %9s", &record->id,
@@ -20,6 +21,59 @@ void saveAccountToFile(FILE *file, int userId, const char *ownerName,
           ownerName, record.accountNumber, record.deposit.month,
           record.deposit.day, record.deposit.year, record.country, record.phone,
           record.amount, record.accountType);
+}
+
+int getUserFromFile(FILE *file, struct User *user) {
+  return fscanf(file, "%d %49s %49s", &user->id, user->name, user->password) ==
+         3;
+}
+
+int findUserByName(const char *name, struct User *user) {
+  FILE *usersFile = fopen(USERS, "r");
+  if (usersFile == NULL) {
+    printf("\nError: Failed to open the users database.\n");
+    exit(1);
+  }
+
+  while (getUserFromFile(usersFile, user)) {
+    if (strcmp(user->name, name) == 0) {
+      fclose(usersFile);
+      return 1;
+    }
+  }
+
+  fclose(usersFile);
+  return 0;
+}
+
+int isUsersAccount(struct User user, const char *ownerName,
+                   struct Record record, int accountNumber) {
+  return strcmp(ownerName, user.name) == 0 &&
+         record.accountNumber == accountNumber;
+}
+
+int getNextAccountNumber(struct User owner) {
+  FILE *recordsFile = fopen(RECORDS, "r");
+  char ownerName[50];
+  struct Record record;
+  int maxAccountNumber = -1;
+
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
+    exit(1);
+  }
+
+  while (getAccountFromFile(recordsFile, ownerName, &record)) {
+    if (strcmp(ownerName, owner.name) == 0) {
+      if (record.accountNumber > maxAccountNumber) {
+        maxAccountNumber = record.accountNumber;
+      }
+    }
+  }
+
+  fclose(recordsFile);
+
+  return maxAccountNumber + 1;
 }
 
 int isFixedAccount(const char *accountType) {
@@ -140,8 +194,8 @@ void createNewAccount(struct User user) {
 
     rewind(recordsFile);
     while (getAccountFromFile(recordsFile, ownerName, &currentRecord)) {
-      if (strcmp(ownerName, user.name) == 0 &&
-          currentRecord.accountNumber == record.accountNumber) {
+      if (isUsersAccount(user, ownerName, currentRecord,
+                         record.accountNumber)) {
         printf("This account already exists for this user.\n\n");
         printf("Enter any character to continue: ");
         scanf(" %c", &continueInput);
@@ -237,8 +291,7 @@ void checkAccountDetails(struct User user) {
   printf("Enter the account number you want to inspect: ");
   accountNumber = getIntegerInput();
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
-    if (strcmp(ownerName, user.name) == 0 &&
-        accountNumber == record.accountNumber) {
+    if (isUsersAccount(user, ownerName, record, accountNumber)) {
       found = 1;
       printf("\nAccount number: %d\n"
              "Deposit date: %d/%d/%d\n"
@@ -311,8 +364,7 @@ void updateAccountInformation(struct User user) {
   }
 
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
-    if (strcmp(ownerName, user.name) == 0 &&
-        record.accountNumber == accountNumber) {
+    if (isUsersAccount(user, ownerName, record, accountNumber)) {
       found = 1;
 
       if (option == 1) {
@@ -370,8 +422,7 @@ void removeAccount(struct User user) {
   }
 
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
-    if (strcmp(ownerName, user.name) == 0 &&
-        record.accountNumber == accountNumber) {
+    if (isUsersAccount(user, ownerName, record, accountNumber)) {
       found = 1;
     } else {
       saveAccountToFile(updatedRecordsFile, record.userId, ownerName, record);
@@ -424,8 +475,7 @@ void makeTransaction(struct User user) {
   accountNumber = getIntegerInput();
 
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
-    if (strcmp(ownerName, user.name) == 0 &&
-        accountNumber == record.accountNumber) {
+    if (isUsersAccount(user, ownerName, record, accountNumber)) {
       found = 1;
 
       if (isFixedAccount(record.accountType)) {
@@ -481,6 +531,79 @@ void makeTransaction(struct User user) {
   if (!transactionCompleted) {
     remove(tempRecords);
     stayOrReturn(0, makeTransaction, user);
+    return;
+  }
+
+  if (rename(tempRecords, RECORDS) != 0) {
+    printf("\nError: Failed to save the updated accounts database.\n");
+    exit(1);
+  }
+
+  success(user);
+}
+
+void transferAccount(struct User user) {
+  int accountNumber;
+  char ownerName[50];
+  char recipientName[50];
+  int found = 0;
+  int recipientAccountNumber;
+  struct Record record;
+  struct User recipient;
+  const char *tempRecords = "./data/records.tmp";
+
+  system("clear");
+  printf("\t\tEnter the account number you want to transfer, %s:\n\n",
+         user.name);
+  accountNumber = getIntegerInput();
+
+  printf("Enter the username you want to transfer this account to: ");
+  scanf("%49s", recipientName);
+
+  if (strcmp(recipientName, user.name) == 0) {
+    printf("\nYou cannot transfer an account to yourself.\n");
+    stayOrReturn(0, transferAccount, user);
+    return;
+  }
+
+  if (!findUserByName(recipientName, &recipient)) {
+    printf("\nRecipient user not found.\n");
+    stayOrReturn(0, transferAccount, user);
+    return;
+  }
+
+  recipientAccountNumber = getNextAccountNumber(recipient);
+
+  FILE *recordsFile = fopen(RECORDS, "r");
+  if (recordsFile == NULL) {
+    printf("\nError: Failed to open the accounts database.\n");
+    exit(1);
+  }
+
+  FILE *updatedRecordsFile = fopen(tempRecords, "w");
+  if (updatedRecordsFile == NULL) {
+    fclose(recordsFile);
+    printf("\nError: Failed to open the temporary accounts database.\n");
+    exit(1);
+  }
+
+  while (getAccountFromFile(recordsFile, ownerName, &record)) {
+    if (isUsersAccount(user, ownerName, record, accountNumber)) {
+      found = 1;
+      record.accountNumber = recipientAccountNumber;
+      saveAccountToFile(updatedRecordsFile, recipient.id, recipient.name,
+                        record);
+    } else {
+      saveAccountToFile(updatedRecordsFile, record.userId, ownerName, record);
+    }
+  }
+
+  fclose(recordsFile);
+  fclose(updatedRecordsFile);
+
+  if (!found) {
+    remove(tempRecords);
+    stayOrReturn(1, transferAccount, user);
     return;
   }
 
