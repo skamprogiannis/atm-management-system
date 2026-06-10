@@ -46,7 +46,6 @@ void mainMenu(struct User user) {
 
 void initMenu(struct User *user) {
   int authenticated = 0;
-  int option;
   system("clear");
   printf("\n=== ATM ===\n\n");
   printf("Choose one of the options below:\n\n");
@@ -54,7 +53,7 @@ void initMenu(struct User *user) {
   printf("[2]- Register\n");
   printf("[3]- Exit\n");
   while (!authenticated) {
-    option = getIntegerInput();
+    int option = getIntegerInput();
     switch (option) {
     case 1:
       loginMenu(user->name, user->password);
