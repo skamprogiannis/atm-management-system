@@ -38,7 +38,7 @@ void mainMenu(struct User user) {
     transferAccount(user);
     return;
   case 8:
-    exit(1);
+    exit(0);
   default:
     printf("Invalid option.\n");
   }
@@ -97,7 +97,7 @@ void initMenu(struct User *user) {
       }
       break;
     case 3:
-      exit(1);
+      exit(0);
       break;
     default:
       printf("Enter a valid option.\n");

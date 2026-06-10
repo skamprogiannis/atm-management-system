@@ -111,7 +111,7 @@ void stayOrReturn(int showRetryMenu, void retryFunction(struct User user),
     return;
   } else {
     system("clear");
-    exit(1);
+    exit(0);
   }
 }
 
@@ -126,7 +126,7 @@ void success(struct User user) {
       mainMenu(user);
       return;
     } else if (option == 0) {
-      exit(1);
+      exit(0);
     } else {
       printf("Enter a valid option.\n");
     }
