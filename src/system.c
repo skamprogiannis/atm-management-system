@@ -162,7 +162,7 @@ void createNewAccount(struct User user) {
     }
 
     system("clear");
-    printf("\t\t\t===== New account =====\n");
+    printf("=== New account ===\n");
 
     int validDate = 0;
     while (!validDate) {
@@ -213,9 +213,9 @@ void createNewAccount(struct User user) {
   printf("\nEnter the amount to deposit: $");
   scanf("%lf", &record.amount);
   printf(
-      "\nChoose an account type:\n\t-> savings\n\t-> current\n\t-> "
-      "fixed01 (for 1 year)\n\t-> fixed02 (for 2 years)\n\t-> fixed03 (for 3 "
-      "years)\n\n\tEnter your choice: ");
+      "\nChoose an account type:\n-> savings\n-> current\n-> "
+      "fixed01 (for 1 year)\n-> fixed02 (for 2 years)\n-> fixed03 (for 3 "
+      "years)\n\nEnter your choice: ");
   scanf("%9s", record.accountType);
 
   FILE *recordsFile = fopen(RECORDS, "a+");
@@ -240,7 +240,7 @@ void checkAllAccounts(struct User user) {
   }
 
   system("clear");
-  printf("\t\t====== Accounts owned by %s =====\n\n", user.name);
+  printf("=== Accounts owned by %s ===\n\n", user.name);
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
     if (strcmp(ownerName, user.name) == 0) {
       printf("_____________________\n");
@@ -342,7 +342,7 @@ void updateAccountInformation(struct User user) {
   const char *tempRecords = "./data/records.tmp";
 
   system("clear");
-  printf("\t\tEnter the account number you want to update, %s:\n\n", user.name);
+  printf("Enter the account number you want to update, %s:\n\n", user.name);
   accountNumber = getIntegerInput();
 
   do {
@@ -411,7 +411,7 @@ void removeAccount(struct User user) {
   const char *tempRecords = "./data/records.tmp";
 
   system("clear");
-  printf("\t\tEnter the number of the account you want to delete, %s:\n\n",
+  printf("Enter the number of the account you want to delete, %s:\n\n",
          user.name);
   accountNumber = getIntegerInput();
 
@@ -477,8 +477,7 @@ void makeTransaction(struct User user) {
   }
 
   system("clear");
-  printf("\t\tEnter the account number for the transaction, %s:\n\n",
-         user.name);
+  printf("Enter the account number for the transaction, %s:\n\n", user.name);
   accountNumber = getIntegerInput();
 
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
@@ -490,8 +489,8 @@ void makeTransaction(struct User user) {
       } else {
         do {
           printf("Would you like to deposit money or withdraw money?");
-          printf("\n\t\t[1]- Deposit\n");
-          printf("\n\t\t[2]- Withdraw\n");
+          printf("\n[1]- Deposit\n");
+          printf("\n[2]- Withdraw\n");
           printf("\nEnter your choice: ");
           option = getIntegerInput();
 
@@ -559,8 +558,7 @@ void transferAccount(struct User user) {
   const char *tempRecords = "./data/records.tmp";
 
   system("clear");
-  printf("\t\tEnter the account number you want to transfer, %s:\n\n",
-         user.name);
+  printf("Enter the account number you want to transfer, %s:\n\n", user.name);
   accountNumber = getIntegerInput();
 
   printf("Enter the username you want to transfer this account to: ");

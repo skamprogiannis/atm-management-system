@@ -3,16 +3,16 @@
 void mainMenu(struct User user) {
   int option;
   system("clear");
-  printf("\n\n\t\t======= ATM =======\n\n");
-  printf("\n\t\tChoose one of the options below:\n");
-  printf("\n\t\t[1]- Create a new account\n");
-  printf("\n\t\t[2]- Update account information\n");
-  printf("\n\t\t[3]- Check account details\n");
-  printf("\n\t\t[4]- List owned accounts\n");
-  printf("\n\t\t[5]- Make a transaction\n");
-  printf("\n\t\t[6]- Remove existing account\n");
-  printf("\n\t\t[7]- Transfer ownership\n");
-  printf("\n\t\t[8]- Exit\n");
+  printf("\n=== ATM ===\n\n");
+  printf("Choose one of the options below:\n\n");
+  printf("[1]- Create a new account\n");
+  printf("[2]- Update account information\n");
+  printf("[3]- Check account details\n");
+  printf("[4]- List owned accounts\n");
+  printf("[5]- Make a transaction\n");
+  printf("[6]- Remove existing account\n");
+  printf("[7]- Transfer ownership\n");
+  printf("[8]- Exit\n");
   option = getIntegerInput();
 
   switch (option) {
@@ -48,11 +48,11 @@ void initMenu(struct User *user) {
   int authenticated = 0;
   int option;
   system("clear");
-  printf("\n\n\t\t======= ATM =======\n");
-  printf("\n\t\tChoose one of the options below:\n");
-  printf("\n\t\t[1]- Login\n");
-  printf("\n\t\t[2]- Register\n");
-  printf("\n\t\t[3]- Exit\n");
+  printf("\n=== ATM ===\n\n");
+  printf("Choose one of the options below:\n\n");
+  printf("[1]- Login\n");
+  printf("[2]- Register\n");
+  printf("[3]- Exit\n");
   while (!authenticated) {
     option = getIntegerInput();
     switch (option) {

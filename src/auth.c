@@ -5,11 +5,11 @@ const char *USERS = "./data/users.txt";
 
 void registerMenu(char name[50], char password[50]) {
   system("clear");
-  printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\tChoose a "
-         "username: ");
+  printf("\n=== Register ===\n\n");
+  printf("Choose a username: ");
   scanf("%49s", name);
 
-  printf("\n\n\n\n\n\t\t\t\tCreate a password: ");
+  printf("Create a password: ");
   scanf("%49s", password);
 }
 
@@ -17,7 +17,8 @@ void loginMenu(char name[50], char password[50]) {
   struct termios oflags, nflags;
 
   system("clear");
-  printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\tUsername: ");
+  printf("\n=== Login ===\n\n");
+  printf("Username: ");
   scanf("%49s", name);
 
   // Save current terminal settings so password input can be hidden temporarily.
@@ -34,7 +35,7 @@ void loginMenu(char name[50], char password[50]) {
     perror("tcsetattr");
     return exit(1);
   }
-  printf("\n\n\n\n\n\t\t\t\tPassword: ");
+  printf("Password: ");
   scanf("%49s", password);
 
   // Restore the original terminal settings so later input is visible again.
