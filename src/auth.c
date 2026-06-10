@@ -45,7 +45,7 @@ void loginMenu(char name[50], char password[50]) {
   }
 }
 
-int authenticateUser(struct User user) {
+int authenticateUser(struct User *user) {
   FILE *usersFile;
   struct User userChecker;
 
@@ -56,9 +56,13 @@ int authenticateUser(struct User user) {
 
   while (fscanf(usersFile, "%d %49s %49s", &userChecker.id, userChecker.name,
                 userChecker.password) == 3) {
-    if (strcmp(userChecker.name, user.name) == 0) {
+    if (strcmp(userChecker.name, user->name) == 0) {
       fclose(usersFile);
-      return strcmp(user.password, userChecker.password) == 0;
+      if (strcmp(user->password, userChecker.password) == 0) {
+        user->id = userChecker.id;
+        return 1;
+      }
+      return 0;
     }
   }
 

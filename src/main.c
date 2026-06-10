@@ -57,7 +57,7 @@ void initMenu(struct User *user) {
     switch (option) {
     case 1:
       loginMenu(user->name, user->password);
-      if (authenticateUser(*user)) {
+      if (authenticateUser(user)) {
         printf("\n\nLogin successful!\n");
         authenticated = 1;
       } else {

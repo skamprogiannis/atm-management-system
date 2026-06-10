@@ -27,7 +27,7 @@ struct User {
 
 void loginMenu(char name[50], char password[50]);
 void registerMenu(char name[50], char password[50]);
-int authenticateUser(struct User user);
+int authenticateUser(struct User *user);
 int isUniqueUsername(struct User user);
 
 int getIntegerInput();
