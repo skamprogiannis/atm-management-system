@@ -52,34 +52,25 @@ int isUsersAccount(struct User user, const char *ownerName,
          record.accountNumber == accountNumber;
 }
 
-int getNextAccountNumber(struct User owner) {
-  FILE *recordsFile = fopen(RECORDS, "r");
-  char ownerName[50];
-  struct Record record;
-  int maxAccountNumber = -1;
-
-  if (recordsFile == NULL) {
-    printf("\nError: Failed to open the accounts database.\n");
-    exit(1);
-  }
-
-  while (getAccountFromFile(recordsFile, ownerName, &record)) {
-    if (strcmp(ownerName, owner.name) == 0) {
-      if (record.accountNumber > maxAccountNumber) {
-        maxAccountNumber = record.accountNumber;
-      }
-    }
-  }
-
-  fclose(recordsFile);
-
-  return maxAccountNumber + 1;
+int isSavingsAccount(const char *accountType) {
+  return strcmp(accountType, "saving") == 0 ||
+         strcmp(accountType, "savings") == 0;
 }
 
 int isFixedAccount(const char *accountType) {
   return strcmp(accountType, "fixed01") == 0 ||
          strcmp(accountType, "fixed02") == 0 ||
          strcmp(accountType, "fixed03") == 0;
+}
+
+int getFixedAccountYears(const char *accountType) {
+  if (strcmp(accountType, "fixed01") == 0)
+    return 1;
+  if (strcmp(accountType, "fixed02") == 0)
+    return 2;
+  if (strcmp(accountType, "fixed03") == 0)
+    return 3;
+  return 0;
 }
 
 void stayOrReturn(int showRetryMenu, void retryFunction(struct User user),
@@ -159,9 +150,11 @@ void createNewAccount(struct User user) {
   char ownerName[50];
   char continueInput;
   int accountExists;
+  int maxRecordId = -1;
 
   do {
     accountExists = 0;
+    maxRecordId = -1;
     FILE *recordsFile = fopen(RECORDS, "a+");
     if (recordsFile == NULL) {
       printf("Error: Could not open the accounts database.\n");
@@ -194,6 +187,9 @@ void createNewAccount(struct User user) {
 
     rewind(recordsFile);
     while (getAccountFromFile(recordsFile, ownerName, &currentRecord)) {
+      if (currentRecord.id > maxRecordId) {
+        maxRecordId = currentRecord.id;
+      }
       if (isUsersAccount(user, ownerName, currentRecord,
                          record.accountNumber)) {
         printf("This account already exists for this user.\n\n");
@@ -207,6 +203,8 @@ void createNewAccount(struct User user) {
     fclose(recordsFile);
 
   } while (accountExists);
+
+  record.id = maxRecordId + 1;
 
   printf("\nEnter the country: ");
   scanf("%49s", record.country);
@@ -262,7 +260,7 @@ void checkAllAccounts(struct User user) {
 }
 
 double getInterestRate(const char *accountType) {
-  if (strcmp(accountType, "saving") == 0 || strcmp(accountType, "savings") == 0)
+  if (isSavingsAccount(accountType))
     return SAVINGS_INTEREST;
   if (strcmp(accountType, "fixed01") == 0)
     return FIXED_ONE_YEAR_INTEREST;
@@ -279,7 +277,8 @@ void checkAccountDetails(struct User user) {
   int accountNumber;
   int found = 0;
   double interestRate;
-  double monthlyInterest;
+  double interest;
+  int fixedAccountYears;
 
   FILE *recordsFile = fopen(RECORDS, "r");
   if (recordsFile == NULL) {
@@ -303,14 +302,22 @@ void checkAccountDetails(struct User user) {
              record.deposit.year, record.country, record.phone, record.amount,
              record.accountType);
 
-      if (strcmp(record.accountType, "current") != 0) {
+      if (isSavingsAccount(record.accountType)) {
         interestRate = getInterestRate(record.accountType);
-        monthlyInterest = record.amount * interestRate / 12;
+        interest = record.amount * interestRate / 12;
         printf("You will get $%.2lf as interest on day %d of every month.\n",
-               monthlyInterest, record.deposit.day);
+               interest, record.deposit.day);
+      } else if (isFixedAccount(record.accountType)) {
+        interestRate = getInterestRate(record.accountType);
+        fixedAccountYears = getFixedAccountYears(record.accountType);
+        interest = record.amount * interestRate * fixedAccountYears;
+        printf("You will get $%.2lf as interest on %d/%d/%d.\n", interest,
+               record.deposit.day, record.deposit.month,
+               record.deposit.year + fixedAccountYears);
+      } else if (strcmp(record.accountType, "current") == 0) {
+        printf("You will not get interest because this is a current account.\n");
       } else {
-        printf(
-            "You will not get interest because this is a current account.\n");
+        printf("Unknown account type. Interest cannot be calculated.\n");
       }
       break;
     }
@@ -547,7 +554,6 @@ void transferAccount(struct User user) {
   char ownerName[50];
   char recipientName[50];
   int found = 0;
-  int recipientAccountNumber;
   struct Record record;
   struct User recipient;
   const char *tempRecords = "./data/records.tmp";
@@ -572,8 +578,6 @@ void transferAccount(struct User user) {
     return;
   }
 
-  recipientAccountNumber = getNextAccountNumber(recipient);
-
   FILE *recordsFile = fopen(RECORDS, "r");
   if (recordsFile == NULL) {
     printf("\nError: Failed to open the accounts database.\n");
@@ -590,7 +594,6 @@ void transferAccount(struct User user) {
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
     if (isUsersAccount(user, ownerName, record, accountNumber)) {
       found = 1;
-      record.accountNumber = recipientAccountNumber;
       saveAccountToFile(updatedRecordsFile, recipient.id, recipient.name,
                         record);
     } else {
