@@ -91,7 +91,7 @@ void stayOrReturn(int showRetryMenu, void retryFunction(struct User user),
   int option;
   if (showRetryMenu) {
     system("clear");
-    printf("\nRecord not found.\n");
+    printf("\nAccount not found.\n");
     do {
       printf("\nEnter 0 to try again, 1 to return to the main menu, or 2 to "
              "exit: ");
@@ -492,7 +492,7 @@ void makeTransaction(struct User user) {
   }
 
   system("clear");
-  printf("Enter the account number for the transaction, %s:\n\n", user.name);
+  printf("Enter the account number for the transaction, %s: ", user.name);
   accountNumber = getIntegerInput();
 
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
@@ -503,9 +503,9 @@ void makeTransaction(struct User user) {
         printf("\nFixed accounts cannot make transactions.\n");
       } else {
         do {
-          printf("Would you like to deposit money or withdraw money?");
-          printf("\n[1]- Deposit\n");
-          printf("\n[2]- Withdraw\n");
+          printf("Would you like to deposit or withdraw money?\n\n");
+          printf("[1]- Deposit\n");
+          printf("[2]- Withdraw\n");
           printf("\nEnter your choice: ");
           option = getIntegerInput();
 
@@ -514,7 +514,7 @@ void makeTransaction(struct User user) {
           }
         } while (option != 1 && option != 2);
 
-        printf("Enter the amount: ");
+        printf("Enter the amount: $");
         while (scanf("%lf", &amount) != 1) {
           while (getchar() != '\n') {
             // Discard invalid input.
