@@ -13,6 +13,7 @@ void mainMenu(struct User user) {
   printf("[6]- Remove existing account\n");
   printf("[7]- Transfer ownership\n");
   printf("[8]- Exit\n");
+  printf("\nEnter your choice: ");
   option = getIntegerInput();
 
   switch (option) {
@@ -53,6 +54,7 @@ void initMenu(struct User *user) {
   printf("[2]- Register\n");
   printf("[3]- Exit\n");
   while (!authenticated) {
+    printf("\nEnter your choice: ");
     int option = getIntegerInput();
     switch (option) {
     case 1:

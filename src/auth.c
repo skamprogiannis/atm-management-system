@@ -3,6 +3,30 @@
 
 const char *USERS = "./data/users.txt";
 
+static void scanHiddenPassword(char password[50]) {
+  struct termios oldSettings, hiddenSettings;
+
+  fflush(stdout);
+  if (tcgetattr(fileno(stdin), &oldSettings) != 0) {
+    perror("tcgetattr");
+    return exit(1);
+  }
+  hiddenSettings = oldSettings;
+  hiddenSettings.c_lflag &= ~ECHO;
+  hiddenSettings.c_lflag |= ECHONL;
+
+  if (tcsetattr(fileno(stdin), TCSANOW, &hiddenSettings) != 0) {
+    perror("tcsetattr");
+    return exit(1);
+  }
+  scanf("%49s", password);
+
+  if (tcsetattr(fileno(stdin), TCSANOW, &oldSettings) != 0) {
+    perror("tcsetattr");
+    return exit(1);
+  }
+}
+
 void registerMenu(char name[50], char password[50]) {
   system("clear");
   printHeader("Register");
@@ -10,39 +34,17 @@ void registerMenu(char name[50], char password[50]) {
   scanf("%49s", name);
 
   printf("Create a password: ");
-  scanf("%49s", password);
+  scanHiddenPassword(password);
 }
 
 void loginMenu(char name[50], char password[50]) {
-  struct termios oflags, nflags;
-
   system("clear");
   printHeader("Login");
   printf("Username: ");
   scanf("%49s", name);
 
-  // Save current terminal settings so password input can be hidden temporarily.
-  if (tcgetattr(fileno(stdin), &oflags) != 0) {
-    perror("tcgetattr");
-    return exit(1);
-  }
-  nflags = oflags;
-  // Disable typed-character echo while keeping Enter/newline behavior normal.
-  nflags.c_lflag &= ~ECHO;
-  nflags.c_lflag |= ECHONL;
-
-  if (tcsetattr(fileno(stdin), TCSANOW, &nflags) != 0) {
-    perror("tcsetattr");
-    return exit(1);
-  }
   printf("Password: ");
-  scanf("%49s", password);
-
-  // Restore the original terminal settings so later input is visible again.
-  if (tcsetattr(fileno(stdin), TCSANOW, &oflags) != 0) {
-    perror("tcsetattr");
-    return exit(1);
-  }
+  scanHiddenPassword(password);
 }
 
 int authenticateUser(struct User *user) {
