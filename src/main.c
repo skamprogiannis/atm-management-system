@@ -45,6 +45,25 @@ void mainMenu(struct User user) {
   }
 }
 
+int shouldRetryAuth() {
+  int option;
+
+  do {
+    printf("\nEnter 1 to try again or 0 to exit: ");
+    option = getIntegerInput();
+
+    if (option == 1) {
+      return 1;
+    } else if (option == 0) {
+      exit(0);
+    } else {
+      printf("Enter a valid option.\n");
+    }
+  } while (option != 0 && option != 1);
+
+  return 0;
+}
+
 void initMenu(struct User *user) {
   int authenticated = 0;
   system("clear");
@@ -58,44 +77,49 @@ void initMenu(struct User *user) {
     int option = getIntegerInput();
     switch (option) {
     case 1:
-      loginMenu(user->name, user->password);
-      if (authenticateUser(user)) {
-        printf("\n\nLogin successful!\n");
-        authenticated = 1;
-      } else {
+      do {
+        loginMenu(user->name, user->password);
+        if (authenticateUser(user)) {
+          printf("\n\nLogin successful!\n");
+          authenticated = 1;
+          break;
+        }
+
         printf("\nIncorrect username or password.\n");
-        printf("\nEnter 1 to try again or 3 to exit.\n");
-      }
+      } while (shouldRetryAuth());
       break;
     case 2:
-      registerMenu(user->name, user->password);
-      if (isUniqueUsername(*user)) {
-        FILE *usersData = fopen("./data/users.txt", "a+");
-        struct User userChecker;
-        int maxId = -1;
+      do {
+        registerMenu(user->name, user->password);
+        if (isUniqueUsername(*user)) {
+          FILE *usersData = fopen("./data/users.txt", "a+");
+          struct User userChecker;
+          int maxId = -1;
 
-        if (usersData == NULL) {
-          printf("Error opening users file.\n");
-          exit(1);
-        }
-
-        while (fscanf(usersData, "%d %49s %49s", &userChecker.id,
-                      userChecker.name, userChecker.password) == 3) {
-          if (userChecker.id > maxId) {
-            maxId = userChecker.id;
+          if (usersData == NULL) {
+            printf("Error opening users file.\n");
+            exit(1);
           }
+
+          while (fscanf(usersData, "%d %49s %49s", &userChecker.id,
+                        userChecker.name, userChecker.password) == 3) {
+            if (userChecker.id > maxId) {
+              maxId = userChecker.id;
+            }
+          }
+
+          user->id = maxId + 1;
+          fseek(usersData, 0, SEEK_END);
+          fprintf(usersData, "%d %s %s\n", user->id, user->name,
+                  user->password);
+          fclose(usersData);
+          authenticated = 1;
+          printf("\nUser registration successful!\n");
+          break;
         }
 
-        user->id = maxId + 1;
-        fseek(usersData, 0, SEEK_END);
-        fprintf(usersData, "%d %s %s\n", user->id, user->name, user->password);
-        fclose(usersData);
-        authenticated = 1;
-        printf("\nUser registration successful!\n");
-      } else {
         printf("\nUsername already exists.\n");
-        printf("\nEnter 2 to try again or 3 to exit.\n");
-      }
+      } while (shouldRetryAuth());
       break;
     case 3:
       exit(0);
