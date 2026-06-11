@@ -8,16 +8,16 @@ static const double FIXED_TWO_YEAR_INTEREST = 0.05;
 static const double FIXED_THREE_YEAR_INTEREST = 0.08;
 
 int getAccountFromFile(FILE *file, char ownerName[50], struct Record *record) {
-  return fscanf(file, "%d %d %49s %d %d/%d/%d %99s %d %lf %9s", &record->id,
+  return fscanf(file, "%d %d %49s %d %d/%d/%d %99s %19s %lf %9s", &record->id,
                 &record->userId, ownerName, &record->accountNumber,
                 &record->deposit.month, &record->deposit.day,
-                &record->deposit.year, record->country, &record->phone,
+                &record->deposit.year, record->country, record->phone,
                 &record->amount, record->accountType) == 11;
 }
 
 void saveAccountToFile(FILE *file, int userId, const char *ownerName,
                        struct Record record) {
-  fprintf(file, "%d %d %s %d %d/%d/%d %s %d %.2lf %s\n\n", record.id, userId,
+  fprintf(file, "%d %d %s %d %d/%d/%d %s %s %.2lf %s\n\n", record.id, userId,
           ownerName, record.accountNumber, record.deposit.month,
           record.deposit.day, record.deposit.year, record.country, record.phone,
           record.amount, record.accountType);
@@ -222,7 +222,7 @@ void createNewAccount(struct User user) {
   printf("\nEnter the country: ");
   scanf("%49s", record.country);
   printf("\nEnter the phone number: ");
-  record.phone = getIntegerInput();
+  scanf("%19s", record.phone);
   printf("\nEnter the amount to deposit: $");
   scanf("%lf", &record.amount);
   printf(
@@ -262,7 +262,7 @@ void checkAllAccounts(struct User user) {
       printf("\nAccount number: %d\n"
              "Deposit date: %d/%d/%d\n"
              "Country: %s\n"
-             "Phone number: %d\n"
+             "Phone number: %s\n"
              "Amount deposited: $%.2f\n"
              "Type of account: %s\n",
              record.accountNumber, record.deposit.day, record.deposit.month,
@@ -310,7 +310,7 @@ void checkAccountDetails(struct User user) {
       printf("\nAccount number: %d\n"
              "Deposit date: %d/%d/%d\n"
              "Country: %s\n"
-             "Phone number: %d\n"
+             "Phone number: %s\n"
              "Amount deposited: $%.2f\n"
              "Type of account: %s\n",
              record.accountNumber, record.deposit.day, record.deposit.month,
@@ -394,7 +394,7 @@ void updateAccountInformation(struct User user) {
         scanf("%99s", record.country);
       } else {
         printf("\nEnter the new phone number: ");
-        record.phone = getIntegerInput();
+        scanf("%19s", record.phone);
       }
     }
 
