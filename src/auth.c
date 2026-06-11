@@ -5,7 +5,7 @@ const char *USERS = "./data/users.txt";
 
 void registerMenu(char name[50], char password[50]) {
   system("clear");
-  printf("\n=== Register ===\n\n");
+  printHeader("Register");
   printf("Choose a username: ");
   scanf("%49s", name);
 
@@ -17,7 +17,7 @@ void loginMenu(char name[50], char password[50]) {
   struct termios oflags, nflags;
 
   system("clear");
-  printf("\n=== Login ===\n\n");
+  printHeader("Login");
   printf("Username: ");
   scanf("%49s", name);
 

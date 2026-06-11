@@ -3,7 +3,7 @@
 void mainMenu(struct User user) {
   int option;
   system("clear");
-  printf("\n=== ATM ===\n\n");
+  printHeader("ATM");
   printf("Choose one of the options below:\n\n");
   printf("[1]- Create a new account\n");
   printf("[2]- Update account information\n");
@@ -47,7 +47,7 @@ void mainMenu(struct User user) {
 void initMenu(struct User *user) {
   int authenticated = 0;
   system("clear");
-  printf("\n=== ATM ===\n\n");
+  printHeader("ATM");
   printf("Choose one of the options below:\n\n");
   printf("[1]- Login\n");
   printf("[2]- Register\n");

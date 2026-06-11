@@ -23,6 +23,19 @@ void saveAccountToFile(FILE *file, int userId, const char *ownerName,
           record.amount, record.accountType);
 }
 
+void printHeader(const char *title) {
+  int width = 32;
+  int titleWidth = strlen(title) + 8;
+  int padding = (width - titleWidth) / 2;
+
+  printf("\n");
+  while (padding > 0) {
+    printf(" ");
+    padding--;
+  }
+  printf("=== %s ===\n\n", title);
+}
+
 int getUserFromFile(FILE *file, struct User *user) {
   return fscanf(file, "%d %49s %49s", &user->id, user->name, user->password) ==
          3;
@@ -162,7 +175,7 @@ void createNewAccount(struct User user) {
     }
 
     system("clear");
-    printf("=== New account ===\n");
+    printHeader("New account");
 
     int validDate = 0;
     while (!validDate) {
@@ -231,6 +244,7 @@ void createNewAccount(struct User user) {
 
 void checkAllAccounts(struct User user) {
   char ownerName[100];
+  char title[150];
   struct Record record;
 
   FILE *recordsFile = fopen(RECORDS, "r");
@@ -240,7 +254,8 @@ void checkAllAccounts(struct User user) {
   }
 
   system("clear");
-  printf("=== Accounts owned by %s ===\n\n", user.name);
+  snprintf(title, sizeof(title), "Accounts owned by %s", user.name);
+  printHeader(title);
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
     if (strcmp(ownerName, user.name) == 0) {
       printf("_____________________\n");

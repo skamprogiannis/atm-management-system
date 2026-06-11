@@ -31,6 +31,7 @@ int authenticateUser(struct User *user);
 int isUniqueUsername(struct User user);
 
 int getIntegerInput();
+void printHeader(const char *title);
 void createNewAccount(struct User user);
 void mainMenu(struct User user);
 void checkAllAccounts(struct User user);
