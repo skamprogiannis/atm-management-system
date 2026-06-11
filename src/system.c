@@ -360,18 +360,6 @@ void updateAccountInformation(struct User user) {
   printf("Enter the account number you want to update, %s:\n\n", user.name);
   accountNumber = getIntegerInput();
 
-  do {
-    printf("\nWhich information do you want to update?\n");
-    printf("\n[1]- Country");
-    printf("\n[2]- Phone number");
-    printf("\n\nEnter your choice: ");
-    option = getIntegerInput();
-
-    if (option != 1 && option != 2) {
-      printf("Invalid option.\n");
-    }
-  } while (option != 1 && option != 2);
-
   FILE *recordsFile = fopen(RECORDS, "r");
   if (recordsFile == NULL) {
     printf("\nError: Failed to open the accounts database.\n");
@@ -388,6 +376,18 @@ void updateAccountInformation(struct User user) {
   while (getAccountFromFile(recordsFile, ownerName, &record)) {
     if (isUsersAccount(user, ownerName, record, accountNumber)) {
       found = 1;
+
+      do {
+        printf("\nWhich information do you want to update?\n");
+        printf("\n[1]- Country");
+        printf("\n[2]- Phone number");
+        printf("\n\nEnter your choice: ");
+        option = getIntegerInput();
+
+        if (option != 1 && option != 2) {
+          printf("Invalid option.\n");
+        }
+      } while (option != 1 && option != 2);
 
       if (option == 1) {
         printf("\nEnter the new country: ");
